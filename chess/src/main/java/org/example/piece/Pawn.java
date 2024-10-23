@@ -16,14 +16,33 @@ public class Pawn extends ChessPiece {
     @Override
     public List<BoardPoint> resolveAvailablePoints(ChessBoard chessBoard, int line, int column) {
         List<BoardPoint> availablePoints = new ArrayList<>();
-        if (!isStarted() && chessBoard.board[line + 2][column] == null) availablePoints.add(new BoardPoint(line + 2, column));
-        if (chessBoard.board[line + 1][column] == null) availablePoints.add(new BoardPoint(line + 1, column));
-        Optional.ofNullable(chessBoard.board[line + 1][column + 1])
-                .map(it -> new BoardPoint(line + 1, column + 1))
-                .ifPresent(availablePoints::add);
-        Optional.ofNullable(chessBoard.board[line + 1][column - 1])
-                .map(it -> new BoardPoint(line + 1, column - 1))
-                .ifPresent(availablePoints::add);
+        if (getColor().equals("White")) {
+            if (!isStarted() && chessBoard.board[line + 2][column] == null) availablePoints.add(new BoardPoint(line + 2, column));
+            if (chessBoard.board[line + 1][column] == null) availablePoints.add(new BoardPoint(line + 1, column));
+            if (chessBoard.checkPos(column + 1)) {
+                Optional.ofNullable(chessBoard.board[line + 1][column + 1])
+                        .map(it -> new BoardPoint(line + 1, column + 1))
+                        .ifPresent(availablePoints::add);
+            }
+            if (chessBoard.checkPos(column - 1)) {
+                Optional.ofNullable(chessBoard.board[line + 1][column - 1])
+                        .map(it -> new BoardPoint(line + 1, column - 1))
+                        .ifPresent(availablePoints::add);
+            }
+        } else {
+            if (!isStarted() && chessBoard.board[line - 2][column] == null) availablePoints.add(new BoardPoint(line - 2, column));
+            if (chessBoard.board[line - 1][column] == null) availablePoints.add(new BoardPoint(line - 1, column));
+            if (chessBoard.checkPos(column + 1)) {
+                Optional.ofNullable(chessBoard.board[line - 1][column + 1])
+                        .map(it -> new BoardPoint(line - 1, column + 1))
+                        .ifPresent(availablePoints::add);
+            }
+            if (chessBoard.checkPos(column - 1)) {
+                Optional.ofNullable(chessBoard.board[line - 1][column - 1])
+                        .map(it -> new BoardPoint(line - 1, column - 1))
+                        .ifPresent(availablePoints::add);
+            }
+        }
         return availablePoints;
     }
     
