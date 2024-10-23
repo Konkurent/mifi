@@ -42,7 +42,10 @@ public class King extends ChessPiece {
     public boolean isUnderAttack(ChessBoard chessBoard, int line, int column) {
         return IntStream.range(0, chessBoard.board.length).filter(startLine ->
             IntStream.range(0, chessBoard.board[line].length)
-                    .filter(startColumn -> chessBoard.board[startLine][startColumn] != this && chessBoard.board[startLine][startColumn].canMoveToPosition(chessBoard, startLine, startColumn, line, column))
+                    .filter(startColumn -> chessBoard.board[startLine][startColumn] != null
+                            && chessBoard.board[startLine][startColumn] != this
+                            && chessBoard.board[startLine][startColumn].canMoveToPosition(chessBoard, startLine, startColumn, line, column)
+                    )
                     .toArray().length != 0
         ).toArray().length != 0;
     }

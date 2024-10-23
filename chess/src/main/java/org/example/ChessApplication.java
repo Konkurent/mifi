@@ -95,6 +95,13 @@ public class ChessApplication {
                         System.out.println("Вы что-то ввели не так, попробуйте ещё раз");
                     }
 
+                } else {
+                    System.out.println(board.moveToPosition(1, 4, 3, 4)); // white
+                    System.out.println(board.moveToPosition(6, 0, 4, 0)); // black
+                    System.out.println(board.moveToPosition(0, 3, 4, 7)); // white
+                    System.out.println(board.moveToPosition(6, 1, 5, 1)); // black
+                    System.out.println(board.moveToPosition(4, 7, 6, 5)); // white
+                    board.printBoard();
                 }
             }
         }
