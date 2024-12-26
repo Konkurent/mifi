@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="yaTask" />
         <module name="chess" />
+        <module name="binarySearch" />
       </profile>
     </annotationProcessing>
   </component>
