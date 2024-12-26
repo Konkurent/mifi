@@ -242,7 +242,7 @@ public class BinarySearch {
             int r = list.size()-1;
 
             while (l <= r) {
-                int mid = (l + r) >>> 1;
+                int mid = (l + r) / 2;
                 Comparable<? super T> midVal = list.get(mid);
                 int cmp = midVal.compareTo(key);
 
@@ -266,7 +266,7 @@ public class BinarySearch {
             int r = list.size()-1;
 
             while (l <= r) {
-                int mid = (l + r) >>> 1;
+                int mid = (l + r) / 2;
                 T midVal = list.get(mid);
                 int cmp = comparator.compare(midVal, key);
 
