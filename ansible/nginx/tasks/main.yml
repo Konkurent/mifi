@@ -1,0 +1,18 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for nginx
+- name: Установить Nginx
+  brew:
+  	name: nginx
+        state: present
+
+- name: Запустить Nginx
+  command: brew services start nginx
+
+- name: Создать индексный файл
+  copy:
+  	content: "<h1>Welcome to Nginx on Mac!</h1>"
+        dest: /usr/local/var/www/index.html
+
+- name: Перезапустить Nginx
+  command: brew services restart nginx

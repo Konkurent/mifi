@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: finalJava
+link:
+  settings:
+    time:
+      mode: "SECONDS"
+      duration: 60

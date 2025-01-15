@@ -1,0 +1,20 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for apache
+- name: Устанавливаю Apache
+     apt:
+       name: apache2
+       state: present
+       update_cache: yes
+
+   - name: Стартую Apache
+     service:
+       name: apache2
+       state: started
+       enabled: yes
+
+   - name: Настраиваю индексный файл
+     copy:
+       content: "<h1>Welcome to Apache!</h1>"
+       dest: /var/www/html/index.html
+
