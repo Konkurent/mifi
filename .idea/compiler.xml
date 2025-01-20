@@ -11,12 +11,13 @@
         <module name="binarySearch" />
         <module name="yaTask" />
         <module name="demo" />
+        <module name="algoFinal" />
       </profile>
       <profile name="Annotation profile for finalJava" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <processorPath useProcessorModulePath="true">
+        <processorPath useClasspath="false" useProcessorModulePath="true">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="finalJava" />
