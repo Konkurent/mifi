@@ -4,41 +4,24 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.algo</groupId>
-    <artifactId>algoFinal</artifactId>
+    <groupId>org.example</groupId>
+    <artifactId>ParallelAndAsynch</artifactId>
     <version>1.0-SNAPSHOT</version>
-
-    <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>org.algo</groupId>-->
-<!--            <artifactId>heroes_task_lib</artifactId>-->
-<!--            <version>1.0-SNAPSHOT</version>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.36</version>
-        </dependency>
-
-    </dependencies>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version> <!-- Укажите актуальную версию -->
+                <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <outputDirectory>/Users/javaman/Downloads/heroes/jars</outputDirectory>
-                    <finalName>obf</finalName>
+                    <source>19</source>
+                    <target>19</target>
                 </configuration>
-
             </plugin>
         </plugins>
     </build>

@@ -1,0 +1,55 @@
+api:
+  version: ${API_VERSION:1}
+spring:
+  application:
+    name: SpecialInstrumentsApplication
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  flyway:
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    enabled: true
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: ${SHOW_SQL:false}
+        use_sql_comments: ${SHOW_SQL:false}
+        highlight_sql: ${SHOW_SQL:false}
+        show_sql: ${SHOW_SQL:false}
+        default_schema: ${DB_SCHEMA:public}
+  mail:
+    host: ${BACKEND_SMTP_HOST:smtp.gmail.com}
+    port: 587
+    username: ${BACKEND_MAIL_LOGIN}
+    password: ${BACKEND_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+smpp:
+  host: ${SMPP_HOST:localhost}
+  port: ${SMPP_PORT:2775}
+  systemId: ${SMPP_SYSTEM_ID:smppclient1}
+  password: ${SMPP_PASSWORD:password}
+
+security:
+  secretKey: ${SECURITY_SECRET_KEY}
+  accessTokenExpirationMs: ${SECURITY_ACCESS_TOKEN_EXPIRATION}
+
+server:
+  servlet:
+    context-path: /api/v${api.version}
+  port: ${BACKEND_PORT:8080}
+
+logging:
+  file:
+    path: ./logs
+
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN}

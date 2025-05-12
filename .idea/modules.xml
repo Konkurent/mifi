@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/algoFinal/algoFinal.iml" filepath="$PROJECT_DIR$/algoFinal/algoFinal.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/mifi.iml" filepath="$PROJECT_DIR$/.idea/mifi.iml" />
     </modules>
   </component>
