@@ -3,9 +3,9 @@ package skillfactory.specialinstruments.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import skillfactory.specialinstruments.dao.entity.OTPConfiguration;
+import skillfactory.specialinstruments.dto.accounts.User;
 import skillfactory.specialinstruments.dto.admin.CreateOTPRequest;
 import skillfactory.specialinstruments.dto.admin.UpdateOtpConfigurationRequest;
 import skillfactory.specialinstruments.dto.admin.VerifyOTPRequest;
@@ -44,7 +44,7 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public Page<Object> getPageOfUsers(
+    public Page<User> getPageOfUsers(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "20") int size
     ) {
