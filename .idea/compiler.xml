@@ -16,6 +16,7 @@
         <module name="binarySearch" />
         <module name="ParallelAndAsynch" />
         <module name="demo" />
+        <module name="rxJava" />
         <module name="ThreadPractice" />
       </profile>
       <profile name="Annotation profile for finalJava" enabled="true">
