@@ -29,19 +29,6 @@
 - Параллельные алгоритмы
 - Трансформации данных
 
-```java
-Observable<Integer> source = Observable.create(observer -> {
-    // Тяжелые вычисления
-    for (int i = 0; i < 1000000; i++) {
-        observer.onNext(compute(i));
-    }
-    observer.onComplete();
-});
-
-source.subscribeOn(new ComputationScheduler())
-      .observeOn(new ComputationScheduler())
-      .subscribe(observer);
-```
 
 ### IOThreadScheduler
 Оптимизирован для операций ввода-вывода:
@@ -50,17 +37,7 @@ source.subscribeOn(new ComputationScheduler())
 - Работа с базами данных
 - Другие блокирующие операции
 
-```java
-Observable<String> source = Observable.create(observer -> {
-    // IO операции
-    String data = readFromFile("large_file.txt");
-    observer.onNext(data);
-    observer.onComplete();
-});
 
-source.subscribeOn(new IOThreadScheduler())
-      .subscribe(observer);
-```
 
 ### SingleThreadScheduler
 Используется для последовательного выполнения:
@@ -68,17 +45,6 @@ source.subscribeOn(new IOThreadScheduler())
 - Синхронизированный доступ к ресурсам
 - Последовательная обработка событий
 
-```java
-Observable<String> source = Observable.create(observer -> {
-    // Последовательные операции
-    observer.onNext("Step 1");
-    observer.onNext("Step 2");
-    observer.onComplete();
-});
-
-source.subscribeOn(new SingleThreadScheduler())
-      .subscribe(observer);
-```
 
 ## Результаты тестирования
 
