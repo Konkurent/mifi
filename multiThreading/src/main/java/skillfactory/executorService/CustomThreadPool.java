@@ -2,7 +2,8 @@ package skillfactory.executorService;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +14,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Data
-@Slf4j
 public class CustomThreadPool implements CustomExecutor {
+    private static final Logger log = LoggerFactory.getLogger(CustomThreadPool.class);
 
     private final Lock lock = new ReentrantLock();
     private final AtomicBoolean shutdown = new AtomicBoolean(false);
@@ -29,8 +30,15 @@ public class CustomThreadPool implements CustomExecutor {
     private final int minSpareThreads;
     private final WorkerFactory threadFactory;
 
-
-    private final RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
+    private final RejectedExecutionHandler handler = new RejectedExecutionHandler() {
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            if (!shutdown.get()) {
+                log.info("{} родительский поток", Thread.currentThread().getName());
+                r.run();
+            }
+        }
+    };
 
     private final List<BlockingQueue<Runnable>> taskQueues = new ArrayList<>();
     private final List<Worker> workers = new ArrayList<>();
@@ -70,7 +78,6 @@ public class CustomThreadPool implements CustomExecutor {
             worker.start();
             return worker.getWorkQueue();
         }
-
     }
 
     @Override
@@ -98,7 +105,21 @@ public class CustomThreadPool implements CustomExecutor {
         lock.lock();
         try {
             BlockingQueue<Runnable> queue = getWorkerQueue();
-            queue.offer(command);
+            if (queue.size() >= queueSize) {
+                if (context.get() < maxPoolSize) {
+                    // Создаем новый воркер, если не достигли максимального количества
+                    Worker newWorker = threadFactory.newThread(command);
+                    newWorker.start();
+                    log.info("Created new worker {} due to queue overflow", newWorker.getName());
+                } else {
+                    // Если достигли максимального количества воркеров, используем handler
+                    handler.rejectedExecution(command, null);
+                }
+            } else {
+                if (!queue.offer(command)) {
+                    handler.rejectedExecution(command, null);
+                }
+            }
         } finally {
             lock.unlock();
         }
@@ -125,7 +146,6 @@ public class CustomThreadPool implements CustomExecutor {
     }
 
     private class WorkerFactory implements ThreadFactory {
-
         private final static String PREFIX = "MyThread-";
         private final AtomicInteger threadNumber = new AtomicInteger(0);
 
@@ -139,17 +159,17 @@ public class CustomThreadPool implements CustomExecutor {
         }
 
         public Worker buildThread(Runnable runnable) {
-            BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
+            BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(queueSize);
             if (runnable != null) queue.add(runnable);
             int workerId = threadNumber.getAndIncrement();
-            return Worker.builder()
-                    .onClose(CustomThreadPool.this::stopWorker)
-                    .workQueue(queue)
-                    .workerId(workerId)
-                    .keepAliveTime(keepAliveTime)
-                    .timeUnit(timeUnit)
-                    .name(PREFIX + (workerId + 1))
-                    .build();
+            return new Worker(
+                PREFIX + (workerId + 1),
+                CustomThreadPool.this::stopWorker,
+                queue,
+                keepAliveTime,
+                timeUnit,
+                workerId
+            );
         }
     }
 }

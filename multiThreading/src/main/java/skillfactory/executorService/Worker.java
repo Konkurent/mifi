@@ -1,8 +1,6 @@
 package skillfactory.executorService;
 
-import lombok.Builder;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,9 +8,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-@Slf4j
 public class Worker extends Thread {
-
+    private static final Logger log = LoggerFactory.getLogger(Worker.class);
+    
     private final Consumer<Worker> onClose;
     @Getter
     private final BlockingQueue<Runnable> workQueue;
@@ -21,7 +19,6 @@ public class Worker extends Thread {
     public final int workerId;
     private volatile boolean running;
 
-    @lombok.Builder
     public Worker(String name, Consumer<Worker> onClose, BlockingQueue<Runnable> workQueue, long keepAliveTime, TimeUnit timeUnit, int workerId) {
         super(name);
         this.onClose = onClose;
@@ -62,5 +59,9 @@ public class Worker extends Thread {
         this.running = false;
         onClose.accept(this);
         super.interrupt();
+    }
+
+    public BlockingQueue<Runnable> getWorkQueue() {
+        return workQueue;
     }
 }
