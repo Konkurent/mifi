@@ -15,6 +15,7 @@
         <option value="$PROJECT_DIR$/ParallelAndAsynch/pom.xml" />
         <option value="$PROJECT_DIR$/SpecialInstruments/pom.xml" />
         <option value="$PROJECT_DIR$/finance-system/pom.xml" />
+        <option value="$PROJECT_DIR$/multiThreading/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

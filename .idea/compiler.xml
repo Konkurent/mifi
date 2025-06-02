@@ -12,6 +12,7 @@
         <module name="chess" />
         <module name="yaTask" />
         <module name="algoFinal" />
+        <module name="multiThreading" />
         <module name="binarySearch" />
         <module name="ParallelAndAsynch" />
         <module name="demo" />
