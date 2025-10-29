@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: auth-service
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:8761/eureka/
+server:
+  port: 8083
+
+security:
+  jwt:
+    main-token-expiration-time: 1000000000
+  permit-all:
+    - /auth/sign-in
+    - /auth/sign-up
+
+

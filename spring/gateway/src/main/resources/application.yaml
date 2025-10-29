@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          global-cors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: "*"
+                allowedMethods:
+                  - "*"
+                allowed-headers:
+                  - "*"
+          routes:
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/user/**
+            - id: auth-service
+              uri: lb://auth-service
+              predicates:
+                - Path=/auth/**
+            - id: hotel-service
+              uri: lb://hotel-service
+              predicates:
+                - Path=/hotel/**
+            - id: booking-service
+              uri: lb://booking-service
+              predicates:
+                - Path=/booking/**
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:8761/eureka/
+server:
+  port: 8080
+
+

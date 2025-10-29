@@ -5,7 +5,7 @@ spring:
         registration:
           github:
             client-id: ${OAUTH_CLIENT_ID}
-            client-secret: ${OAUTH_CLIENT_SECRET}
+            client-secret: ${OAUTH_CLIENTSECRET}
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             scope: read:user
         provider:
