@@ -3,40 +3,97 @@ spring:
     name: gateway
   cloud:
     gateway:
-      server:
-        webflux:
-          global-cors:
-            cors-configurations:
-              '[/**]':
-                allowedOrigins: "*"
-                allowedMethods:
-                  - "*"
-                allowed-headers:
-                  - "*"
-          routes:
-            - id: user-service
-              uri: lb://user-service
-              predicates:
-                - Path=/user/**
-            - id: auth-service
-              uri: lb://auth-service
-              predicates:
-                - Path=/auth/**
-            - id: hotel-service
-              uri: lb://hotel-service
-              predicates:
-                - Path=/hotel/**
-            - id: booking-service
-              uri: lb://booking-service
-              predicates:
-                - Path=/booking/**
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      global-cors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+      routes:
+        # Auth service routes
+        - id: auth-service-signup
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+            - PreserveHostHeader
+        
+        # Access service routes
+        - id: auth-service-access
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/v1/access/**
+          filters:
+            - StripPrefix=0
+            - PreserveHostHeader
+        
+        # Booking service routes
+        - id: booking-service-bookings
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/v1/bookings/**
+          filters:
+            - StripPrefix=0
+            - PreserveHostHeader
+        
+        - id: booking-service-user
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/v1/user/**
+          filters:
+            - StripPrefix=0
+            - PreserveHostHeader
+        
+        # Hotel service routes
+        - id: hotel-service-rooms
+          uri: lb://hotel-service
+          predicates:
+            - Path=/api/rooms/**
+          filters:
+            - StripPrefix=0
+            - PreserveHostHeader
+        
+        - id: hotel-service-rooms-v1
+          uri: lb://hotel-service
+          predicates:
+            - Path=/api/v1/rooms/**
+          filters:
+            - StripPrefix=0
+            - PreserveHostHeader
+        
+        - id: hotel-service-hotels
+          uri: lb://hotel-service
+          predicates:
+            - Path=/api/hotels/**
+          filters:
+            - StripPrefix=0
+            - PreserveHostHeader
+
 eureka:
   instance:
     hostname: localhost
   client:
     service-url:
       defaultZone: http://${eureka.instance.hostname}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
 server:
   port: 8080
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
 
 
