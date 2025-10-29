@@ -1,0 +1,35 @@
+{
+  "groups": [
+    {
+      "name": "security",
+      "type": "mifi.hotel.security.dto.Urls",
+      "sourceType": "mifi.hotel.security.dto.Urls"
+    },
+    {
+      "name": "security.jwt",
+      "type": "mifi.hotel.security.dto.JwtConfigProperties",
+      "sourceType": "mifi.hotel.security.dto.JwtConfigProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "security.jwt.main-token-expiration-time",
+      "type": "java.lang.Long",
+      "sourceType": "mifi.hotel.security.dto.JwtConfigProperties"
+    },
+    {
+      "name": "security.jwt.secret",
+      "type": "java.lang.String",
+      "sourceType": "mifi.hotel.security.dto.JwtConfigProperties"
+    },
+    {
+      "name": "security.permit-all",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "mifi.hotel.security.dto.Urls"
+    }
+  ],
+  "hints": [],
+  "ignored": {
+    "properties": []
+  }
+}

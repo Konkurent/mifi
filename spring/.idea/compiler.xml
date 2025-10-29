@@ -8,18 +8,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
       </profile>
-      <profile name="Annotation profile for booking" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.7/spring-boot-configuration-processor-3.5.7.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-        </processorPath>
-        <module name="booking" />
-        <module name="gateway" />
-        <module name="discovery" />
-      </profile>
       <profile name="Annotation profile for auth" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -32,6 +20,19 @@
         </processorPath>
         <module name="auth" />
       </profile>
+      <profile name="Annotation profile for booking" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.7/spring-boot-configuration-processor-3.5.7.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="booking" />
+        <module name="gateway" />
+        <module name="discovery" />
+        <module name="hotel-service" />
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="user" target="17" />
@@ -43,6 +44,7 @@
       <module name="booking" options="-parameters" />
       <module name="discovery" options="-parameters" />
       <module name="gateway" options="-parameters" />
+      <module name="hotel-service" options="-parameters" />
       <module name="user" options="-parameters" />
     </option>
   </component>

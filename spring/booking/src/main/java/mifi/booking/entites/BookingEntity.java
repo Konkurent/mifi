@@ -37,6 +37,9 @@ public class BookingEntity {
 
     private Long rqId;
 
+    @Version
+    private Integer version;
+
     @CreationTimestamp
     private LocalDateTime createDate;
 

@@ -22,6 +22,7 @@ CREATE TABLE bookings(
     status          VARCHAR(255) DEFAULT 'PENDING',
     user_id         BIGINT REFERENCES users(id),
     rq_id           BIGINT,
+    version         INTEGER NOT NULL DEFAULT 0,
     create_date     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_date     TIMESTAMP WITHOUT TIME ZONE
 )

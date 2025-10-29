@@ -1,10 +1,11 @@
 package mifi.booking.security.jwt;
 
+import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mifi.auth.security.dto.CustomerDetails;
-import mifi.auth.security.dto.JwtConfigProperties;
+import mifi.booking.security.dto.CustomerDetails;
+import mifi.booking.security.dto.JwtConfigProperties;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
