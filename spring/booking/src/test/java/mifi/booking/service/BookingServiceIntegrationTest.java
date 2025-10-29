@@ -154,6 +154,7 @@ class BookingServiceIntegrationTest {
     void testCancelBooking_Success() {
         // Given
         doNothing().when(hotelService).incrementRoomUsage(any(Long.class), eq(1L));
+        doNothing().when(hotelService).decrementRoomUsage(any(Long.class), eq(1L));
         BookingEntity booking = bookingService.bookRoom(validPayload);
         Long bookingId = booking.getId();
         assertEquals(BookingStatus.CONFIRMED, booking.getStatus());
@@ -165,6 +166,7 @@ class BookingServiceIntegrationTest {
         Optional<BookingEntity> cancelled = bookingRepository.findById(bookingId);
         assertTrue(cancelled.isPresent());
         assertEquals(BookingStatus.CANCELLED, cancelled.get().getStatus());
+        verify(hotelService, times(1)).decrementRoomUsage(any(Long.class), eq(1L));
     }
 }
 

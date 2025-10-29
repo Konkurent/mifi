@@ -13,7 +13,6 @@ import mifi.booking.services.BookingService;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.print.Book;
 import java.time.LocalDate;
 
 @RestController
@@ -53,8 +52,8 @@ public class BookingController {
 
 
     @DeleteMapping("/{id}")
-    public void cancelBooking(@PathVariable Long bookingId) {
-        bookingService.cancelBooking(bookingId);
+    public void cancelBooking(@PathVariable("id") Long id) {
+        bookingService.cancelBooking(id);
     }
 
 

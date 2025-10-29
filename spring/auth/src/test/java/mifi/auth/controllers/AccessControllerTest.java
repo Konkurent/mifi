@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -120,13 +121,12 @@ class AccessControllerTest {
         doNothing().when(accessService).createAccess(any(CreateUserEvent.class));
 
         // When & Then
-        mockMvc.perform(put("/api/v1/access")
+        mockMvc.perform(post("/api/v1/access")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCreateEvent)))
                 .andExpect(status().isOk());
 
-        // Примечание: В контроллере два метода PUT с одинаковым путем, что является ошибкой в коде
-        // Тест будет вызывать первый метод (updateAccess), но для полноты тестируем оба сценария
+        verify(accessService, times(1)).createAccess(any(CreateUserEvent.class));
     }
 
     @Test
@@ -142,8 +142,7 @@ class AccessControllerTest {
                 .build();
 
         // When & Then - проверяем, что запрос обработан (может вернуть ошибку, но не падает с исключением)
-        // Примечание: контроллер имеет два метода PUT с одинаковым путем, что является ошибкой в коде
-        var result = mockMvc.perform(put("/api/v1/access")
+        var result = mockMvc.perform(post("/api/v1/access")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidEvent)))
                 .andReturn();
@@ -188,6 +187,46 @@ class AccessControllerTest {
                 .andExpect(status().isOk());
 
         verify(accessService, times(1)).deleteAccess(email);
+    }
+
+    @Test
+    void testGetCustomerDetails_Success() throws Exception {
+        // Given
+        String email = "test@example.com";
+        mifi.auth.security.dto.CustomerDetails customerDetails = mifi.auth.security.dto.CustomerDetails.builder()
+                .email(email)
+                .userId(1L)
+                .password("")
+                .authorities(List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+        
+        when(accessService.getCustomerDetailsByEmail(email)).thenReturn(customerDetails);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/access/customer/{email}", email))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(email))
+                .andExpect(jsonPath("$.userId").value(1L))
+                .andExpect(jsonPath("$.authorities[0]").value("ROLE_USER"));
+
+        verify(accessService, times(1)).getCustomerDetailsByEmail(email);
+    }
+
+    @Test
+    void testGetCustomerDetails_NotFound() throws Exception {
+        // Given
+        String email = "nonexistent@example.com";
+        when(accessService.getCustomerDetailsByEmail(email))
+                .thenThrow(new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found!"));
+
+        // When & Then
+        var result = mockMvc.perform(get("/api/v1/access/customer/{email}", email))
+                .andReturn();
+        
+        assertTrue(result.getResponse().getStatus() == 404 || result.getResponse().getStatus() == 500,
+                "Должен вернуть 404 или 500 при отсутствии пользователя");
+
+        verify(accessService, times(1)).getCustomerDetailsByEmail(email);
     }
 }
 

@@ -112,7 +112,7 @@ class RoomServiceTest {
         Long requestId = 100L;
         Set<Long> excludeRooms = Set.of(2L, 3L);
         List<Room> rooms = List.of(testRoom);
-        when(roomRepository.findAllAvailableRooms()).thenReturn(rooms);
+        when(roomRepository.findAvailableRoomsOrderedByTimesBooked()).thenReturn(rooms);
 
         // When
         Long result = roomService.resolveAvailableRoomId(requestId, excludeRooms);
@@ -127,7 +127,7 @@ class RoomServiceTest {
         // Given
         Long requestId = 100L;
         Set<Long> excludeRooms = Set.of();
-        when(roomRepository.findAllAvailableRooms()).thenReturn(List.of());
+        when(roomRepository.findAvailableRoomsOrderedByTimesBooked()).thenReturn(List.of());
 
         // When & Then
         assertThrows(RoomNotFoundException.class, () -> {
@@ -206,6 +206,64 @@ class RoomServiceTest {
         assertThrows(RoomNotFoundException.class, () -> {
             roomService.getRoomById(roomId);
         });
+    }
+
+    @Test
+    void testDecrementTimesBooked_NewRequest_Success() {
+        // Given
+        Long requestId = 100L;
+        Long roomId = 1L;
+        when(processedRequestRepository.existsByRequestIdAndOperationType(requestId, "DECREMENT"))
+                .thenReturn(false);
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(testRoom));
+        when(roomRepository.save(any(Room.class))).thenReturn(testRoom);
+        when(processedRequestRepository.save(any(ProcessedRequest.class)))
+                .thenReturn(new ProcessedRequest());
+
+        // When
+        roomService.decrementTimesBooked(requestId, roomId);
+
+        // Then
+        verify(roomRepository, times(1)).findById(roomId);
+        verify(roomRepository, times(1)).save(testRoom);
+        verify(processedRequestRepository, times(1)).save(any(ProcessedRequest.class));
+        assertEquals(4, testRoom.getTimesBooked());
+    }
+
+    @Test
+    void testDecrementTimesBooked_Idempotent_ReturnsEarly() {
+        // Given
+        Long requestId = 100L;
+        Long roomId = 1L;
+        when(processedRequestRepository.existsByRequestIdAndOperationType(requestId, "DECREMENT"))
+                .thenReturn(true);
+
+        // When
+        roomService.decrementTimesBooked(requestId, roomId);
+
+        // Then
+        verify(processedRequestRepository, never()).save(any(ProcessedRequest.class));
+        verify(roomRepository, never()).save(any(Room.class));
+    }
+
+    @Test
+    void testDecrementTimesBooked_ZeroTimesBooked_DoesNotDecrement() {
+        // Given
+        Long requestId = 100L;
+        Long roomId = 1L;
+        testRoom.setTimesBooked(0);
+        when(processedRequestRepository.existsByRequestIdAndOperationType(requestId, "DECREMENT"))
+                .thenReturn(false);
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(testRoom));
+
+        // When
+        roomService.decrementTimesBooked(requestId, roomId);
+
+        // Then
+        verify(roomRepository, times(1)).findById(roomId);
+        verify(roomRepository, never()).save(any(Room.class));
+        verify(processedRequestRepository, never()).save(any(ProcessedRequest.class));
+        assertEquals(0, testRoom.getTimesBooked());
     }
 }
 

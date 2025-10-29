@@ -110,6 +110,33 @@ class RoomServiceIntegrationTest {
         // Then
         assertNotEquals(testRoom.getId(), resolvedRoomId);
         assertEquals(room2.getId(), resolvedRoomId);
+        // Проверяем, что используется сортировка по timesBooked для равномерного распределения
+        // room2 с timesBooked=0 должен быть выбран перед room1, если он не исключен
+    }
+
+    @Test
+    void testDecrementTimesBooked_Idempotency() {
+        // Given
+        Long requestId = 200L;
+        Long roomId = testRoom.getId();
+        testRoom.setTimesBooked(5);
+        roomRepository.save(testRoom);
+        Integer initialCount = testRoom.getTimesBooked();
+
+        // When - первый вызов
+        roomService.decrementTimesBooked(requestId, roomId);
+        Room afterFirst = roomRepository.findById(roomId).orElseThrow();
+        Integer afterFirstCount = afterFirst.getTimesBooked();
+
+        // Повторный вызов с тем же requestId
+        roomService.decrementTimesBooked(requestId, roomId);
+        Room afterSecond = roomRepository.findById(roomId).orElseThrow();
+        Integer afterSecondCount = afterSecond.getTimesBooked();
+
+        // Then
+        assertEquals(initialCount - 1, afterFirstCount);
+        assertEquals(afterFirstCount, afterSecondCount, "Второй вызов не должен уменьшать счетчик");
+        assertTrue(processedRequestRepository.existsByRequestIdAndOperationType(requestId, "DECREMENT"));
     }
 
     @Test

@@ -108,5 +108,34 @@ class RoomServiceIdempotencyTest {
         assertEquals(initialCount + 3, updatedRoom.getTimesBooked(), 
                 "Каждый уникальный requestId должен увеличить счетчик");
     }
+
+    @Test
+    void testDecrementIdempotency_MultipleCallsWithSameRequestId_NoDuplication() {
+        // Given
+        Long requestId = 400L;
+        Long roomId = testRoom.getId();
+        testRoom.setTimesBooked(5);
+        roomRepository.save(testRoom);
+        Integer initialCount = testRoom.getTimesBooked();
+
+        // When - несколько вызовов с одним и тем же requestId
+        roomService.decrementTimesBooked(requestId, roomId);
+        roomService.decrementTimesBooked(requestId, roomId);
+        roomService.decrementTimesBooked(requestId, roomId);
+
+        // Then
+        Room updatedRoom = roomRepository.findById(roomId).orElseThrow();
+        assertEquals(initialCount - 1, updatedRoom.getTimesBooked(), 
+                "Счетчик должен уменьшиться только один раз");
+
+        List<ProcessedRequest> processedRequests = processedRequestRepository
+                .findAll()
+                .stream()
+                .filter(pr -> pr.getRequestId().equals(requestId) && "DECREMENT".equals(pr.getOperationType()))
+                .toList();
+        
+        assertEquals(1, processedRequests.size(), 
+                "Должна быть только одна запись о processed request для DECREMENT");
+    }
 }
 

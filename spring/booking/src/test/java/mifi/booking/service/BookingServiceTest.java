@@ -139,6 +139,7 @@ class BookingServiceTest {
                 .thenReturn(testBooking); // для компенсации
         doThrow(new RuntimeException("Hotel service unavailable"))
                 .when(hotelService).incrementRoomUsage(eq(rqId), eq(roomId));
+        doNothing().when(hotelService).decrementRoomUsage(any(), any());
 
         // When
         assertThrows(BookingRuntimeException.class, () -> {
@@ -156,6 +157,34 @@ class BookingServiceTest {
         
         assertNotNull(cancelled, "При ошибке бронирование должно быть в статусе CANCELLED");
         assertEquals(BookingStatus.CANCELLED, cancelled.getStatus());
+        // Проверяем, что decrementRoomUsage не вызывается, так как increment не был выполнен
+        verify(hotelService, never()).decrementRoomUsage(any(), any());
+    }
+
+    @Test
+    void testBookRoom_HotelServiceFailsAfterIncrement_CompensatesWithDecrement() {
+        // Given
+        Long rqId = 100L;
+        Long roomId = 1L;
+        when(bookingSequence.next()).thenReturn(rqId);
+        when(bookingRepository.getPageByFilter(any(BookingFilter.class)))
+                .thenReturn(org.springframework.data.domain.Page.empty());
+        when(userService.getUserById(1L)).thenReturn(testUser);
+        when(bookingRepository.save(any(BookingEntity.class)))
+                .thenReturn(testBooking)
+                .thenThrow(new RuntimeException("Database error")) // ошибка после increment
+                .thenReturn(testBooking); // для компенсации
+        doNothing().when(hotelService).incrementRoomUsage(eq(rqId), eq(roomId));
+        doNothing().when(hotelService).decrementRoomUsage(eq(rqId), eq(roomId));
+
+        // When
+        assertThrows(BookingRuntimeException.class, () -> {
+            bookingService.bookRoom(validPayload);
+        });
+
+        // Then - проверяем компенсацию с decrement
+        verify(hotelService, times(1)).incrementRoomUsage(rqId, roomId);
+        verify(hotelService, times(1)).decrementRoomUsage(rqId, roomId);
     }
 
     @Test
@@ -208,12 +237,15 @@ class BookingServiceTest {
     }
 
     @Test
-    void testCancelBooking_Success() {
+    void testCancelBooking_Success_ConfirmedBooking_CallsDecrement() {
         // Given
         Long bookingId = 1L;
         testBooking.setStatus(BookingStatus.CONFIRMED);
+        testBooking.setRoomId(1L);
+        testBooking.setRqId(100L);
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(testBooking));
         when(bookingRepository.save(any(BookingEntity.class))).thenReturn(testBooking);
+        doNothing().when(hotelService).decrementRoomUsage(eq(100L), eq(1L));
 
         // When
         bookingService.cancelBooking(bookingId);
@@ -222,6 +254,25 @@ class BookingServiceTest {
         ArgumentCaptor<BookingEntity> captor = ArgumentCaptor.forClass(BookingEntity.class);
         verify(bookingRepository, times(1)).save(captor.capture());
         assertEquals(BookingStatus.CANCELLED, captor.getValue().getStatus());
+        verify(hotelService, times(1)).decrementRoomUsage(100L, 1L);
+    }
+
+    @Test
+    void testCancelBooking_PendingBooking_DoesNotCallDecrement() {
+        // Given
+        Long bookingId = 1L;
+        testBooking.setStatus(BookingStatus.PENDING);
+        testBooking.setRoomId(1L);
+        testBooking.setRqId(100L);
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(testBooking));
+        when(bookingRepository.save(any(BookingEntity.class))).thenReturn(testBooking);
+
+        // When
+        bookingService.cancelBooking(bookingId);
+
+        // Then
+        verify(bookingRepository, times(1)).save(any(BookingEntity.class));
+        verify(hotelService, never()).decrementRoomUsage(any(), any());
     }
 
     @Test

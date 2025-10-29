@@ -18,7 +18,7 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -118,6 +118,21 @@ class RoomControllerTest {
                 .andExpect(status().isOk());
 
         verify(roomService, times(1)).incrementTimesBooked(requestId, roomId);
+    }
+
+    @Test
+    void testDecrementRoomUsage_Success() throws Exception {
+        // Given
+        Long requestId = 100L;
+        Long roomId = 1L;
+        doNothing().when(roomService).decrementTimesBooked(requestId, roomId);
+
+        // When & Then
+        mockMvc.perform(put("/api/v1/rooms/{roomId}/decrement", roomId)
+                        .header("X-Request-Id", requestId))
+                .andExpect(status().isOk());
+
+        verify(roomService, times(1)).decrementTimesBooked(requestId, roomId);
     }
 
     @Test
