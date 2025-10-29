@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface BookingRepository extends JpaRepository<BookingEntity, Long>, JpaSpecificationExecutor<BookingEntity> {
+public interface BookingRepository extends JpaRepository<BookingEntity, Long>, JpaSpecificationExecutor<BookingEntity>, BookingSequence {
 
     default Page<BookingEntity> getPageByFilter(BookingFilter filter) {
         PageRequest pageRequest = PageRequest.of(filter.getPage(), filter.getSize(), Sort.Direction.DESC, "endDate", "startDate");

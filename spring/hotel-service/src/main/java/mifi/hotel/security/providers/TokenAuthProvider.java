@@ -27,7 +27,7 @@ public class TokenAuthProvider implements AuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return authentication == JwtTokenAuthentificationFactory.PrincipalHolder.class;
+        return authentication == JwtTokenAuthentificationFactory.TokenHolder.class;
     }
 }
 

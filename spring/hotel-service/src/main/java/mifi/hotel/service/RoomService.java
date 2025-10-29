@@ -100,18 +100,64 @@ public class RoomService {
     }
 
     /**
+     * Идемпотентное уменьшение счетчика бронирований с оптимистичной блокировкой
+     * Используется для компенсации при отмене бронирования
+     */
+    @Retryable(
+            retryFor = OptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100, multiplier = 2)
+    )
+    public void decrementTimesBooked(Long requestId, Long roomId) {
+        log.info("Processing decrement request: requestId={}, roomId={}", requestId, roomId);
+        
+        // Проверка идемпотентности
+        if (processedRequestRepository.existsByRequestIdAndOperationType(requestId, "DECREMENT")) {
+            log.info("Request already processed: requestId={}, roomId={}", requestId, roomId);
+            return; // Идемпотентность - запрос уже обработан
+        }
+
+        try {
+            Room room = getRoomById(roomId);
+            if (room.getTimesBooked() > 0) {
+                room.setTimesBooked(room.getTimesBooked() - 1);
+                roomRepository.save(room);
+
+                // Сохраняем информацию о processed request
+                ProcessedRequest processedRequest = ProcessedRequest.builder()
+                        .requestId(requestId)
+                        .roomId(roomId)
+                        .operationType("DECREMENT")
+                        .processedAt(LocalDateTime.now())
+                        .build();
+                processedRequestRepository.save(processedRequest);
+                
+                log.info("Successfully decremented timesBooked: requestId={}, roomId={}, newCount={}", 
+                        requestId, roomId, room.getTimesBooked());
+            } else {
+                log.warn("Cannot decrement timesBooked below zero: requestId={}, roomId={}", requestId, roomId);
+            }
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("Optimistic lock failure, retrying: requestId={}, roomId={}", requestId, roomId);
+            throw e;
+        }
+    }
+
+    /**
      * Получение доступной комнаты для бронирования с исключением уже забронированных
+     * Выбирает номер с наименьшим количеством бронирований для равномерного распределения нагрузки
      */
     public Long resolveAvailableRoomId(Long requestId, Set<Long> excludeRooms) {
         log.info("Resolving available room: requestId={}, excludeRooms={}", requestId, excludeRooms);
         
-        List<Room> availableRooms = roomRepository.findAllAvailableRooms();
+        List<Room> availableRooms = roomRepository.findAvailableRoomsOrderedByTimesBooked();
         Room selectedRoom = availableRooms.stream()
                 .filter(room -> !excludeRooms.contains(room.getId()))
                 .findFirst()
                 .orElseThrow(() -> new RoomNotFoundException("No available rooms found"));
 
-        log.info("Resolved room: requestId={}, roomId={}", requestId, selectedRoom.getId());
+        log.info("Resolved room: requestId={}, roomId={}, timesBooked={}", 
+                requestId, selectedRoom.getId(), selectedRoom.getTimesBooked());
         return selectedRoom.getId();
     }
 

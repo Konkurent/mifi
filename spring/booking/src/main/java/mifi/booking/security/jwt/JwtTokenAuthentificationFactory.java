@@ -2,26 +2,43 @@ package mifi.booking.security.jwt;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import mifi.auth.security.jwt.JwtService;
+import mifi.booking.dto.CustomerDetailsDto;
+import mifi.booking.security.dto.CustomerDetails;
+import mifi.booking.services.AccessService;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class JwtTokenAuthentificationFactory {
 
-    private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final AccessService accessService;
 
     public Authentication stubAuthentication(String token) {
         return new TokenHolder(token);
     }
 
     public Authentication createAuthentication(String email) {
-        return new PrincipalHolder(userDetailsService.loadUserByUsername(email));
+        CustomerDetailsDto customerDetailsDto = accessService.getCustomerDetails(email);
+        List<GrantedAuthority> authorities = customerDetailsDto.authorities().stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+        
+        CustomerDetails customerDetails = CustomerDetails.builder()
+                .email(customerDetailsDto.email())
+                .userId(customerDetailsDto.userId())
+                .password("")
+                .authorities(authorities)
+                .build();
+        
+        return new PrincipalHolder(customerDetails);
     }
 
 

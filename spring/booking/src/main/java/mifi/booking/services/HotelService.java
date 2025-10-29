@@ -28,4 +28,9 @@ public interface HotelService {
             @RequestHeader("X-Request-Id") Long rqId,
             @PathVariable @NonNull Long roomId);
 
+    @PutMapping("/{roomId}/decrement")
+    void decrementRoomUsage(
+            @RequestHeader("X-Request-Id") Long rqId,
+            @PathVariable @NonNull Long roomId);
+
 }

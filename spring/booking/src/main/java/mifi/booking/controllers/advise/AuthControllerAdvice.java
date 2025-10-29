@@ -2,7 +2,6 @@ package mifi.booking.controllers.advise;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import mifi.auth.controllers.advise.Error;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -16,10 +15,10 @@ public class AuthControllerAdvice {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public mifi.auth.controllers.advise.Error handlePortalException(Throwable e, HttpServletRequest request) {
+    public Error handlePortalException(Throwable e, HttpServletRequest request) {
         log.error("Error: ", e);
         if (e instanceof ConvertableException) {
-            return new mifi.auth.controllers.advise.Error(
+            return new Error(
                     ((ConvertableException) e).getSystemCode(),
                     ((ConvertableException) e).getSystemCode().getStatus().getReasonPhrase(),
                     request.getServletPath(),

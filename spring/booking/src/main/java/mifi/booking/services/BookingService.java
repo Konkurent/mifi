@@ -15,6 +15,8 @@ import mifi.booking.repository.BookingRepository;
 import mifi.booking.repository.BookingSequence;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,9 +71,15 @@ public class BookingService {
         }
     }
 
+    @Retryable(
+            retryFor = OptimisticLockingFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100, multiplier = 2)
+    )
     public BookingEntity bookRoom(CreateBookingPayload payload, @NonNull Long roomId, Long rqId) {
         Long bookingId = null;
         BookingEntity entity = null;
+        boolean incrementCompleted = false;
         
         try {
             // Проверка доступности комнаты
@@ -93,6 +101,7 @@ public class BookingService {
             
             // Вызов hotel-service для инкремента счетчика
             hotelService.incrementRoomUsage(rqId, roomId);
+            incrementCompleted = true;
             log.info("Room usage incremented: bookingId={}, rqId={}, roomId={}", 
                     bookingId, rqId, roomId);
             
@@ -107,26 +116,50 @@ public class BookingService {
         } catch (OptimisticLockingFailureException e) {
             log.error("Optimistic locking failure: bookingId={}, rqId={}, roomId={}", 
                     bookingId, rqId, roomId, e);
-            // Повторяем попытку
+            // Компенсация при оптимистичной блокировке
+            performCompensation(bookingId, entity, rqId, roomId, incrementCompleted, e);
             throw new BookingRuntimeException("Concurrent modification detected, please retry", SystemCode.ALREADY_EXIST);
             
         } catch (Exception e) {
             log.error("Error during booking: bookingId={}, rqId={}, roomId={}", 
                     bookingId, rqId, roomId, e);
-            
-            // Компенсация: переводим в CANCELLED
-            if (entity != null && bookingId != null) {
-                try {
-                    entity.setStatus(BookingStatus.CANCELLED);
-                    bookingRepository.save(entity);
-                    log.info("Booking cancelled due to error: bookingId={}, rqId={}, roomId={}, status=CANCELLED", 
-                            bookingId, rqId, roomId);
-                } catch (Exception compensationError) {
-                    log.error("Failed to cancel booking during compensation: bookingId={}, rqId={}", 
-                            bookingId, rqId, compensationError);
-                }
-            }
+            // Компенсация: откат изменений
+            performCompensation(bookingId, entity, rqId, roomId, incrementCompleted, e);
             throw new BookingRuntimeException("Failed to complete booking: " + e.getMessage(), SystemCode.NOT_FOUND);
+        }
+    }
+
+    /**
+     * Компенсация при ошибке бронирования
+     * Откатывает все выполненные действия: уменьшает счетчик в hotel-service и переводит бронирование в CANCELLED
+     */
+    private void performCompensation(Long bookingId, BookingEntity entity, Long rqId, Long roomId, 
+                                     boolean incrementCompleted, Exception originalError) {
+        // Компенсация инкремента счетчика в hotel-service
+        if (incrementCompleted && roomId != null && rqId != null) {
+            try {
+                log.info("Compensating increment: bookingId={}, rqId={}, roomId={}", 
+                        bookingId, rqId, roomId);
+                hotelService.decrementRoomUsage(rqId, roomId);
+                log.info("Room usage decremented as compensation: bookingId={}, rqId={}, roomId={}", 
+                        bookingId, rqId, roomId);
+            } catch (Exception decrementError) {
+                log.error("Failed to decrement room usage during compensation: bookingId={}, rqId={}, roomId={}", 
+                        bookingId, rqId, roomId, decrementError);
+            }
+        }
+        
+        // Компенсация: переводим в CANCELLED
+        if (entity != null && bookingId != null) {
+            try {
+                entity.setStatus(BookingStatus.CANCELLED);
+                bookingRepository.save(entity);
+                log.info("Booking cancelled due to error: bookingId={}, rqId={}, roomId={}, status=CANCELLED", 
+                        bookingId, rqId, roomId);
+            } catch (Exception compensationError) {
+                log.error("Failed to cancel booking during compensation: bookingId={}, rqId={}", 
+                        bookingId, rqId, compensationError);
+            }
         }
     }
 
@@ -151,6 +184,22 @@ public class BookingService {
         log.info("Cancelling booking: bookingId={}", bookingId);
         BookingEntity entity = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingRuntimeException("Booking not found", SystemCode.NOT_FOUND));
+        
+        // Компенсация: уменьшаем счетчик в hotel-service для подтвержденных бронирований
+        if (entity.getStatus() == BookingStatus.CONFIRMED && entity.getRoomId() != null && entity.getRqId() != null) {
+            try {
+                log.info("Decrementing room usage for cancelled booking: bookingId={}, rqId={}, roomId={}", 
+                        bookingId, entity.getRqId(), entity.getRoomId());
+                hotelService.decrementRoomUsage(entity.getRqId(), entity.getRoomId());
+                log.info("Room usage decremented: bookingId={}, rqId={}, roomId={}", 
+                        bookingId, entity.getRqId(), entity.getRoomId());
+            } catch (Exception e) {
+                log.error("Failed to decrement room usage during cancellation: bookingId={}, rqId={}, roomId={}", 
+                        bookingId, entity.getRqId(), entity.getRoomId(), e);
+                // Продолжаем отмену бронирования даже если не удалось уменьшить счетчик
+            }
+        }
+        
         entity.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(entity);
         log.info("Booking cancelled: bookingId={}, rqId={}", bookingId, entity.getRqId());

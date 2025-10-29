@@ -64,5 +64,15 @@ public class RoomController {
         roomService.incrementTimesBooked(requestId, roomId);
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/v1/rooms/{roomId}/decrement")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<Void> decrementRoomUsage(
+            @RequestHeader("X-Request-Id") Long requestId,
+            @PathVariable Long roomId) {
+        log.info("Received decrementRoomUsage request: requestId={}, roomId={}", requestId, roomId);
+        roomService.decrementTimesBooked(requestId, roomId);
+        return ResponseEntity.ok().build();
+    }
 }
 

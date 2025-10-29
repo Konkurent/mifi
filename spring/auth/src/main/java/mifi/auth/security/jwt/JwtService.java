@@ -22,7 +22,6 @@ import java.util.Map;
 public class JwtService {
 
     private final JwtConfigProperties jwtConfigProperties;
-    private final UserDetailsService userDetailsService;
 
     public static final String HEADER = "Authorization";
     public static final String JWT_TOKEN_HEADER_PARAM = HEADER;

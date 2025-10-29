@@ -35,7 +35,7 @@ public class AccessService implements UserDetailsService {
                 .email(event.email())
                 .userId(event.userId())
                 .login(event.login())
-                .role("USER")
+                .role(event.admin() ? "ADMIN" : "USER")
                 .password(passwordEncoder.encode(event.password()))
                 .build();
         accessRepository.save(access);
@@ -92,5 +92,13 @@ public class AccessService implements UserDetailsService {
         if (accessRepository.existsById(email)) {
             accessRepository.deleteById(email);
         }
+    }
+
+    /**
+     * Получает CustomerDetails по email для использования во внешних сервисах
+     * Возвращает данные без пароля
+     */
+    public CustomerDetails getCustomerDetailsByEmail(String email) {
+        return (CustomerDetails) loadUserByUsername(email);
     }
 }

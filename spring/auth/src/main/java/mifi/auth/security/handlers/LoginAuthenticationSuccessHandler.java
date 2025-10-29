@@ -20,8 +20,6 @@ import java.io.IOException;
 public class LoginAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtService jwtService;
-
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         CustomerDetails userDetails = (CustomerDetails) authentication.getPrincipal();
