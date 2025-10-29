@@ -70,4 +70,8 @@ public class UserService {
         accessService.updateAccess(UserDtoConverter.toUpdateEvent(entity));
         return entity;
     }
+
+    public UserEntity getUserById(Long id) {
+        return userRepository.getReferenceById(id);
+    }
 }

@@ -37,7 +37,7 @@ public class UserEntity {
     private String email;
 
     @CreationTimestamp
-    private LocalDateTime creationDate;
+    private LocalDateTime creatDate;
 
     @UpdateTimestamp
     private LocalDateTime updateDate;

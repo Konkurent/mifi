@@ -24,6 +24,7 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long>, J
                 BookingSpecification.userIdEqual(filter.getUserId())
                         .and(BookingSpecification.roomIdEqual(filter.getRoomId()))
                         .and(BookingSpecification.statusEqual(filter.getStatus()))
+                        .and(BookingSpecification.excludeStatus(filter.getExcludeStatus()))
                         .and(BookingSpecification.startDateLessThen(filter.getEndDate()))
                         .and(BookingSpecification.endDateGreaterThen(filter.getStartDate())),
                 pageRequest
@@ -35,6 +36,7 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long>, J
                 BookingSpecification.userIdEqual(filter.getUserId())
                         .and(BookingSpecification.roomIdEqual(filter.getRoomId()))
                         .and(BookingSpecification.statusEqual(filter.getStatus()))
+                        .and(BookingSpecification.excludeStatus(filter.getExcludeStatus()))
                         .and(BookingSpecification.startDateLessThen(filter.getEndDate()))
                         .and(BookingSpecification.endDateGreaterThen(filter.getStartDate())),
                 Sort.by(Sort.Direction.DESC, "endDate", "startDate")
@@ -69,6 +71,16 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long>, J
                     return criteriaBuilder.conjunction();
                 } else {
                     return criteriaBuilder.equal(root.get("status"), status);
+                }
+            };
+        }
+
+        public static Specification<BookingEntity> excludeStatus(@Nullable BookingStatus[] statuses) {
+            return (root, query, criteriaBuilder) -> {
+                if (statuses == null || statuses.length == 0) {
+                    return criteriaBuilder.conjunction();
+                } else {
+                    return criteriaBuilder.not(root.get("status").in(statuses));
                 }
             };
         }

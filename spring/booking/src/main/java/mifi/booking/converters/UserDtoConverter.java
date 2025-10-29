@@ -27,7 +27,7 @@ public class UserDtoConverter {
                 .userId(entity.getId())
                 .login(entity.getLogin())
                 .email(entity.getEmail())
-                .creationDate(entity.getCreationDate())
+                .creationDate(entity.getCreatDate())
                 .build();
     }
 

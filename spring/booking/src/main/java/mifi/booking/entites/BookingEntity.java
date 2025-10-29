@@ -35,8 +35,10 @@ public class BookingEntity {
     @OneToOne(fetch = FetchType.LAZY)
     private UserEntity user;
 
+    private Long rqId;
+
     @CreationTimestamp
-    private LocalDateTime creationDate;
+    private LocalDateTime createDate;
 
     @UpdateTimestamp
     private LocalDateTime updateDate;

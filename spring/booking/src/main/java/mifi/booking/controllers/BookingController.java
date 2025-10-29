@@ -52,14 +52,15 @@ public class BookingController {
     }
 
 
-    public void cancelBooking() {
-
+    @DeleteMapping("/{id}")
+    public void cancelBooking(@PathVariable Long bookingId) {
+        bookingService.cancelBooking(bookingId);
     }
 
 
-    @PostMapping()
+    @PostMapping
     public Booking bookRoom(@Valid @RequestBody CreateBookingPayload payload) {
-        return bookingService.bookRoom(payload);
+        return BookingDtoConverter.toDto(bookingService.bookRoom(payload));
     }
 
 }
